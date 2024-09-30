@@ -11,16 +11,14 @@ const countObjectsWithMeta = (data: any, depth: number = 0): any => {
             objectCount++;
             result[key] = countObjectsWithMeta(data[key], depth + 1);
         } else {
-            result[key] = data[key]; 
+            result[key] = data[key];
         }
     }
 
-    // Attach the objectCount for this level
     result["objectCount"] = objectCount;
     return result;
 };
 
-// Helper function to sort only string values in descending order
 const sortStringsDescending = (data: any, cache = new Map()): any => {
     const traverse = (obj: any): any => {
         if (typeof obj === "string") {
@@ -57,23 +55,24 @@ const TreeView = ({ data }: { data: any }) => {
                     {Object.entries(obj).map(([key, value], index) => {
                         const itemKey = `${parentKey}-${index}`;
                         const isExpanded = expandedItems[itemKey];
-
+    
+                        // Explicitly handle `value` as ReactNode
                         if (key === "objectCount") {
                             return (
                                 <li key={index} className="mb-1 font-semibold dark:text-darkText">
-                                    <>Object Count: {value}</>
+                                    <>Object Count: {value as React.ReactNode}</>
                                 </li>
                             );
                         }
-
+    
                         return (
                             <li key={index} className="mb-1 font-semibold dark:text-darkText">
-                                <pre onClick={() => toggleExpand(itemKey)} style={{ cursor: 'pointer' }}>
+                                <pre className="cursor-pointer" onClick={() => toggleExpand(itemKey)}>
                                     {key} {isExpanded ? "▼" : "▶"}
                                 </pre>
                                 {isExpanded && (
                                     typeof value === "string" ? (
-                                        <pre className="inline-block max-w-auto h-auto px-2 py-1 rounded-full text-sm dark:bg-darkBadge dark:text-darkText ml-2 overflow-auto whitespace-normal">
+                                        <pre className="inline-block max-w-auto h-auto px-2 py-1 rounded-full text-sm bg-amber-400/25 text-white-200 ml-2 overflow-auto whitespace-normal">
                                             {value}
                                         </pre>
                                     ) : (
@@ -88,6 +87,7 @@ const TreeView = ({ data }: { data: any }) => {
         }
         return null;
     };
+    
 
     return <div className="overflow-y-auto">{renderTree(data)}</div>;
 };
@@ -100,7 +100,6 @@ const WebApp: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
 
-    // Load persisted URL from localStorage on initial render
     useEffect(() => {
         const savedUrl = localStorage.getItem("url");
         if (savedUrl) {
@@ -108,7 +107,6 @@ const WebApp: React.FC = () => {
         }
     }, []);
 
-    // Save the URL in localStorage when the user updates it
     const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const newUrl = e.target.value;
         setUrl(newUrl);
@@ -116,10 +114,9 @@ const WebApp: React.FC = () => {
         setError(null);
     };
 
-    // Fetch the URL when 'Query' is clicked
     const fetchData = async () => {
         if (!url) return;
-        setIsLoading(true);  // Start loading
+        setIsLoading(true);
         try {
             const response = await fetch(url);
             if (!response.ok) {
@@ -128,22 +125,18 @@ const WebApp: React.FC = () => {
             const data = await response.json();
             setResponseData(data);
             processResponse(data);
-            setError(null); // Clear error if successful
+            setError(null);
         } catch (error) {
             setError("Failed to fetch data. Check the URL.");
             setResponseData(null);
             setProcessedData(null);
         } finally {
-            setIsLoading(false);  // End loading
+            setIsLoading(false);
         }
     };
 
-    // Process and combine the object count with the sorted strings
     const processResponse = (data: any) => {
-        // Sort strings first
         const sortedData = sortStringsDescending(data);
-
-        // Then add object count metadata
         const processedWithMeta = countObjectsWithMeta(sortedData);
 
         setProcessedData(processedWithMeta);
@@ -152,16 +145,14 @@ const WebApp: React.FC = () => {
     return (
         <div className="mt-2 p-4 max-w-screen-2xl mx-auto dark:bg-darkSecondary shadow-lg rounded-lg">
             <div className="flex items-center gap-3 mb-4">
-                {/* URL Input Field */}
                 <input
                     type="text"
                     value={url}
-                    onChange={handleUrlChange} // Save to localStorage on change
+                    onChange={handleUrlChange}
                     className="border p-3 w-full rounded-lg shadow-sm dark:bg-darkSecondary dark:text-darkText"
                     placeholder="Enter URL here"
                 />
 
-                {/* Query Button */}
                 <button
                     onClick={fetchData}
                     className="bg-darkBtn text-white font-semibold px-6 py-3 rounded-lg shadow hover:bg-blue-900 transition"
@@ -170,16 +161,14 @@ const WebApp: React.FC = () => {
                 </button>
             </div>
 
-            {/* Error Message */}
             {error && (
                 <div className="mb-4 p-2 dark:text-darkDanger bg-darkDangerContainer rounded-md">
                     {error}
                 </div>
             )}
 
-            {isLoading && <div className="loading-spinner">Loading...</div>}  {/* Placeholder for a spinner */}
+            {isLoading && <div className="loading-spinner">Loading...</div>}
 
-            {/* Response Display */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="p-4 bg-darkCard rounded-lg shadow">
                     <h3 className="font-semibold dark:text-darkText text-lg mb-2">
