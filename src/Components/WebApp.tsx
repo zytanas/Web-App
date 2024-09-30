@@ -62,7 +62,11 @@ const WebApp: React.FC = () => {
     };
 
     const fetchData = async () => {
-        if (!url) return;
+        if (!url) {
+            setError("URL is required. Please enter a valid URL.");
+            return;
+        }
+
         setIsLoading(true);
         try {
             const response = await fetch(url);
@@ -96,7 +100,7 @@ const WebApp: React.FC = () => {
                     type="text"
                     value={url}
                     onChange={handleUrlChange}
-                    className="border p-3 w-full rounded-lg shadow-sm dark:bg-darkSecondary dark:text-darkText"
+                    className={`border p-3 w-full rounded-lg shadow-sm dark:bg-darkSecondary dark:text-darkText ${error && !url ? 'border-red-500' : ''}`}
                     placeholder="Enter URL here"
                 />
 
