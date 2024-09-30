@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import TreeView from "./TreeView";
+import LoadingSpinner from "./LoadingSpinner";
 
 const countObjectsWithMeta = (data: any, depth: number = 0): any => {
     if (typeof data !== "object" || data === null) return data;
@@ -37,61 +39,6 @@ const sortStringsDescending = (data: any, cache = new Map()): any => {
     };
     return traverse(data);
 };
-
-const TreeView = ({ data }: { data: any }) => {
-    const [expandedItems, setExpandedItems] = useState<{ [key: string]: boolean }>({});
-
-    const toggleExpand = (key: string) => {
-        setExpandedItems((prev) => ({
-            ...prev,
-            [key]: !prev[key],
-        }));
-    };
-
-    const renderTree = (obj: any, parentKey = "") => {
-        if (typeof obj === "object" && obj !== null) {
-            return (
-                <ul className="pl-4">
-                    {Object.entries(obj).map(([key, value], index) => {
-                        const itemKey = `${parentKey}-${index}`;
-                        const isExpanded = expandedItems[itemKey];
-    
-                        // Explicitly handle `value` as ReactNode
-                        if (key === "objectCount") {
-                            return (
-                                <li key={index} className="mb-1 font-semibold dark:text-darkText">
-                                    <>Object Count: {value as React.ReactNode}</>
-                                </li>
-                            );
-                        }
-    
-                        return (
-                            <li key={index} className="mb-1 font-semibold dark:text-darkText">
-                                <pre className="cursor-pointer" onClick={() => toggleExpand(itemKey)}>
-                                    {key} {isExpanded ? "▼" : "▶"}
-                                </pre>
-                                {isExpanded && (
-                                    typeof value === "string" ? (
-                                        <pre className="inline-block max-w-auto h-auto px-2 py-1 rounded-full text-sm bg-amber-400/25 text-white-200 ml-2 overflow-auto whitespace-normal">
-                                            {value}
-                                        </pre>
-                                    ) : (
-                                        renderTree(value, itemKey)
-                                    )
-                                )}
-                            </li>
-                        );
-                    })}
-                </ul>
-            );
-        }
-        return null;
-    };
-    
-
-    return <div className="overflow-y-auto">{renderTree(data)}</div>;
-};
-
 
 const WebApp: React.FC = () => {
     const [url, setUrl] = useState<string>("");
@@ -167,33 +114,35 @@ const WebApp: React.FC = () => {
                 </div>
             )}
 
-            {isLoading && <div className="loading-spinner">Loading...</div>}
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-4 bg-darkCard rounded-lg shadow">
-                    <h3 className="font-semibold dark:text-darkText text-lg mb-2">
-                        URL Response
-                    </h3>
-                    <pre className="dark:text-darkText text-sm overflow-auto">
-                        {responseData
-                            ? JSON.stringify(responseData, null, 2)
-                            : "No response yet."}
-                    </pre>
-                </div>
-
-                <div className="p-4 bg-darkCard rounded-lg shadow">
-                    <h3 className="font-semibold dark:text-darkText text-lg mb-2">
-                        Processed Response
-                    </h3>
-                    {processedData ? (
-                        <TreeView data={processedData} />
-                    ) : (
-                        <pre className="text-sm dark:text-darkText overflow-auto">
-                            'No processed data yet.'
+            {isLoading ? (
+                <LoadingSpinner />  
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="p-4 bg-darkCard rounded-lg shadow">
+                        <h3 className="font-semibold dark:text-darkText text-lg mb-2">
+                            URL Response
+                        </h3>
+                        <pre className="dark:text-darkText text-sm overflow-auto">
+                            {responseData
+                                ? JSON.stringify(responseData, null, 2)
+                                : "No response yet."}
                         </pre>
-                    )}
+                    </div>
+
+                    <div className="p-4 bg-darkCard rounded-lg shadow">
+                        <h3 className="font-semibold dark:text-darkText text-lg mb-2">
+                            Processed Response
+                        </h3>
+                        {processedData ? (
+                            <TreeView data={processedData} />
+                        ) : (
+                            <pre className="text-sm dark:text-darkText overflow-auto">
+                                'No processed data yet.'
+                            </pre>
+                        )}
+                    </div>
                 </div>
-            </div>
+            )}
         </div>
     );
 };
